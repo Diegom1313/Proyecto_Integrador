@@ -1,7 +1,8 @@
 @startuml DiagramaCasosDeUso_TallerEdnaModa
 ' =====================================================
 ' DIAGRAMA DE CASOS DE USO - Taller Edna Moda
-' Sprint #2 - [ED5]
+' Versión actualizada (Sprint 3 / Sprint 4) reflejando
+' la implementación real de los Controladores.
 ' =====================================================
 
 left to right direction
@@ -12,58 +13,83 @@ actor Aprendiz  as AP
 actor Oficial   as OF
 actor Maestro   as MA
 
-AP -|> OF  : extiende
-OF -|> MA  : extiende
+' Herencia de roles: Oficial hereda de Aprendiz, Maestro de Oficial
+AP <|-- OF
+OF <|-- MA
 
 rectangle "Sistema Taller Edna Moda" {
 
-    ' --- Autenticación ---
-    usecase "Iniciar sesión"       as UC_LOGIN
-    usecase "Cerrar sesión"        as UC_LOGOUT
+    ' --- Acceso general (TODOS) ---
+    usecase "Iniciar sesión"             as UC_LOGIN
+    usecase "Cerrar sesión"              as UC_LOGOUT
+    usecase "Cambiar mi contraseña"      as UC_CAMBIAR_PWD
 
     ' --- Citas ---
-    usecase "Ver mis citas"        as UC_MIS_CITAS
-    usecase "Ver todas las citas"  as UC_VER_CITAS
-    usecase "Crear nueva cita"     as UC_CREAR_CITA
-    usecase "Editar cita propia"   as UC_EDITAR_CITA
-    usecase "Editar cualquier cita"as UC_EDITAR_CITA_M
-    usecase "Borrar cita"          as UC_BORRAR_CITA
-    usecase "Asignar aprendices"   as UC_ASIGNAR_AP
+    usecase "Ver mis citas asignadas"    as UC_MIS_CITAS
+    usecase "Consultar detalle de cita"  as UC_DETALLE_CITA
+    usecase "Ver todas las citas"        as UC_VER_CITAS
+    usecase "Crear nueva cita"           as UC_CREAR_CITA
+    usecase "Modificar mis citas"        as UC_EDITAR_CITA
+    usecase "Modificar cualquier cita"   as UC_EDITAR_CITA_M
+    usecase "Asignar aprendices a cita"  as UC_ASIGNAR_AP
+    usecase "Asignar oficial a cita"     as UC_ASIGNAR_OF
+    usecase "Borrar cita"                as UC_BORRAR_CITA
 
     ' --- Talleres ---
-    usecase "Ver talleres"         as UC_VER_TALLERES
-    usecase "Crear taller"         as UC_CREAR_TALLER
-    usecase "Editar taller"        as UC_EDITAR_TALLER
-    usecase "Borrar taller"        as UC_BORRAR_TALLER
+    usecase "Consultar talleres"         as UC_VER_TALLERES
+    usecase "Gestionar talleres (CRUD)"  as UC_CRUD_TALLERES
 
-    ' --- Clientes ---
-    usecase "Ver clientes"         as UC_VER_CLIENTES
-    usecase "Crear cliente"        as UC_CREAR_CLIENTE
-    usecase "Editar cliente"       as UC_EDITAR_CLIENTE
-    usecase "Borrar cliente"       as UC_BORRAR_CLIENTE
+    ' --- Clientes y trajes ---
+    usecase "Consultar clientes y trajes" as UC_VER_CLIENTES
+    usecase "Gestionar clientes (CRUD)"  as UC_CRUD_CLIENTES
+    usecase "Gestionar trajes (CRUD)"    as UC_CRUD_TRAJES
+    usecase "Cambiar estado de un traje" as UC_ESTADO_TRAJE
+
+    ' --- Empleados ---
+    usecase "Gestionar empleados (CRUD)" as UC_CRUD_EMPLEADOS
+    usecase "Restablecer contraseña empleado" as UC_RESET_PWD
 }
 
-' Conexiones Aprendiz
+' --- Inclusiones ---
+UC_MIS_CITAS  ..> UC_DETALLE_CITA : <<include>>
+UC_VER_CITAS  ..> UC_DETALLE_CITA : <<include>>
+
+' =========================================
+' Conexiones por actor
+' =========================================
+
+' Aprendiz: acceso + ver/consultar sus citas
 AP -- UC_LOGIN
 AP -- UC_LOGOUT
+AP -- UC_CAMBIAR_PWD
 AP -- UC_MIS_CITAS
 
-' Conexiones Oficial
+' Oficial (hereda de Aprendiz)
 OF -- UC_VER_CITAS
 OF -- UC_CREAR_CITA
 OF -- UC_EDITAR_CITA
 OF -- UC_ASIGNAR_AP
 OF -- UC_VER_TALLERES
+OF -- UC_VER_CLIENTES
+OF -- UC_ESTADO_TRAJE
 
-' Conexiones Maestro
+' Maestro (hereda de Oficial)
 MA -- UC_EDITAR_CITA_M
+MA -- UC_ASIGNAR_OF
 MA -- UC_BORRAR_CITA
-MA -- UC_CREAR_TALLER
-MA -- UC_EDITAR_TALLER
-MA -- UC_BORRAR_TALLER
-MA -- UC_VER_CLIENTES
-MA -- UC_CREAR_CLIENTE
-MA -- UC_EDITAR_CLIENTE
-MA -- UC_BORRAR_CLIENTE
+MA -- UC_CRUD_CLIENTES
+MA -- UC_CRUD_TRAJES
+MA -- UC_CRUD_TALLERES
+MA -- UC_CRUD_EMPLEADOS
+MA -- UC_RESET_PWD
+
+note right of UC_CREAR_CITA
+  Reglas de negocio aplicadas
+  en CitasControlador:
+  - Máximo 2 aprendices por cita.
+  - Sin solapes en el mismo taller.
+  - 1 h de margen entre cita de
+    héroe y villano en el mismo taller.
+end note
 
 @enduml

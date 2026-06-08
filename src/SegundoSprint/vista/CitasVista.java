@@ -3,49 +3,54 @@ package SegundoSprint.vista;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.*;
 
 /**
  * Vista para la gestión de citas del Taller de Edna Moda.
- * Muestra un listado de citas con opciones de crear, editar y borrar
- * según el rol del empleado.
+ * <p>
+ * Se usa como <code>JPanel</code> embebido dentro de la
+ * {@link VentanaPrincipal}. Muestra un listado de citas con opciones de
+ * crear, editar y borrar según el rol del empleado autenticado.
+ * </p>
+ *
+ * <p>La tabla no muestra IDs: cliente, traje, taller y empleado se listan
+ * siempre por su nombre.</p>
+ *
+ * @author Equipo Proyecto Integrador 1ºDAW — Hijos Del Compilador
+ * @version 1.1
+ * @since Sprint #2
  */
-public class CitasVista extends JFrame {
+public class CitasVista extends JPanel {
 
     private JTable tablaCitas;
     private DefaultTableModel modeloTabla;
     private JButton btnNuevaCita;
     private JButton btnEditarCita;
     private JButton btnBorrarCita;
-    private JButton btnCerrar;
     private JComboBox<String> cmbFiltro;
     private String categoria;
 
+    // Sin ID, solo nombres legibles.
     private static final String[] COLUMNAS = {
-        "ID", "Cliente", "Traje", "Taller", "Empleado responsable", "Día", "Hora", "Duración (h)"
+        "Cliente", "Traje", "Taller", "Empleado responsable", "Dia", "Hora", "Duracion (h)"
     };
 
     /**
-     * @param categoria Categoría del empleado: Aprendiz, Oficial o Maestro
+     * @param categoria Categoria del empleado: Aprendiz, Oficial o Maestro
      */
     public CitasVista(String categoria) {
         this.categoria = categoria;
-        setTitle("Taller Edna Moda - Gestión de Citas");
-        setSize(900, 500);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
-
         construirUI();
         aplicarPermisos();
-
-        setVisible(true);
     }
 
     private void construirUI() {
         setLayout(new BorderLayout(10, 10));
+        setBackground(Color.WHITE);
+        setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
 
-        // Panel superior: título y filtro
+        // Panel superior: titulo y filtro
         JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
+        panelSuperior.setBackground(Color.WHITE);
         JLabel lblTitulo = new JLabel("Citas");
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 18));
         cmbFiltro = new JComboBox<>(new String[]{"Todas las citas", "Mis citas"});
@@ -53,7 +58,7 @@ public class CitasVista extends JFrame {
         panelSuperior.add(new JLabel("Mostrar:"));
         panelSuperior.add(cmbFiltro);
 
-        // Tabla de citas
+        // Tabla de citas (sin columna ID)
         modeloTabla = new DefaultTableModel(COLUMNAS, 0) {
             public boolean isCellEditable(int row, int col) { return false; }
         };
@@ -65,22 +70,18 @@ public class CitasVista extends JFrame {
 
         // Panel inferior: botones
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        panelBotones.setBackground(Color.WHITE);
         btnNuevaCita  = new JButton("Nueva cita");
         btnEditarCita = new JButton("Editar");
         btnBorrarCita = new JButton("Borrar");
-        btnCerrar     = new JButton("Cerrar");
 
         estilizarBoton(btnNuevaCita,  new Color(40, 167, 69),  Color.WHITE);
         estilizarBoton(btnEditarCita, new Color(0, 123, 255),  Color.WHITE);
         estilizarBoton(btnBorrarCita, new Color(220, 53, 69),  Color.WHITE);
-        estilizarBoton(btnCerrar,     new Color(108, 117, 125), Color.WHITE);
-
-        btnCerrar.addActionListener(e -> dispose());
 
         panelBotones.add(btnNuevaCita);
         panelBotones.add(btnEditarCita);
         panelBotones.add(btnBorrarCita);
-        panelBotones.add(btnCerrar);
 
         add(panelSuperior, BorderLayout.NORTH);
         add(scroll,        BorderLayout.CENTER);
@@ -112,7 +113,7 @@ public class CitasVista extends JFrame {
         btn.setFocusPainted(false);
     }
 
-    /** Carga filas en la tabla. Cada Object[] debe tener 8 valores. */
+    /** Carga filas en la tabla. Cada Object[] debe tener 7 valores. */
     public void cargarCitas(Object[][] datos) {
         modeloTabla.setRowCount(0);
         for (Object[] fila : datos) {
@@ -120,20 +121,24 @@ public class CitasVista extends JFrame {
         }
     }
 
-    /** Devuelve el ID de la cita seleccionada, o -1 si no hay selección. */
-    public int getIdCitaSeleccionada() {
-        int fila = tablaCitas.getSelectedRow();
-        if (fila == -1) return -1;
-        return (int) modeloTabla.getValueAt(fila, 0);
+    /** Devuelve el indice de la fila seleccionada, -1 si no hay. */
+    public int getFilaSeleccionada() {
+        return tablaCitas.getSelectedRow();
     }
 
-    public String getFiltroSeleccionado() { return (String) cmbFiltro.getSelectedItem(); }
-    public JButton getBtnNuevaCita()      { return btnNuevaCita; }
-    public JButton getBtnEditarCita()     { return btnEditarCita; }
-    public JButton getBtnBorrarCita()     { return btnBorrarCita; }
+    public JTable getTabla()                { return tablaCitas; }
+    public String getFiltroSeleccionado()   { return (String) cmbFiltro.getSelectedItem(); }
+    public JButton getBtnNuevaCita()        { return btnNuevaCita; }
+    public JButton getBtnEditarCita()       { return btnEditarCita; }
+    public JButton getBtnBorrarCita()       { return btnBorrarCita; }
     public JComboBox<String> getCmbFiltro() { return cmbFiltro; }
 
     public static void main(String[] args) {
-        new CitasVista("Maestro");
+        JFrame frame = new JFrame("Demo CitasVista");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(900, 500);
+        frame.setLocationRelativeTo(null);
+        frame.setContentPane(new CitasVista("Maestro"));
+        frame.setVisible(true);
     }
 }

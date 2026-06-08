@@ -1,4 +1,3 @@
-
 -- =============================================================
 -- BASE DE DATOS: TALLER EDNA MODA
 -- Sprint #2 - [BD3] Modelo Relacional + [BD4] Creación BBDD
@@ -17,7 +16,7 @@ CREATE TABLE IF NOT EXISTS empleados (
     apellidos     VARCHAR(100) NOT NULL,
     apodo         VARCHAR(50)  NOT NULL UNIQUE,   -- nombre en clave / usuario de login
     categoria     ENUM('Aprendiz','Oficial','Maestro') NOT NULL,
-    password      VARCHAR(255) NOT NULL            -- almacenado con hash 
+    password      VARCHAR(255) NOT NULL            -- almacenado con hash (ej. SHA-256)
 );
 
 CREATE INDEX idx_empleados_apodo ON empleados(apodo);
@@ -31,7 +30,7 @@ CREATE TABLE IF NOT EXISTS clientes (
     nombre_superheroe VARCHAR(100) NOT NULL,
     superpoder       VARCHAR(200),
     colores          VARCHAR(200),
-    tipo             ENUM('Heroe','Villano') DEFAULT NULL  -- distinguir héroe/villano
+    tipo             ENUM('Heroe','Villano') DEFAULT NULL  -- BONUS: distinguir héroe/villano
 );
 
 CREATE INDEX idx_clientes_nombre ON clientes(nombre_superheroe);
@@ -77,14 +76,16 @@ CREATE TABLE IF NOT EXISTS citas (
     dia                      DATE NOT NULL,
     hora                     TIME NOT NULL,
     duracion                 INT  NOT NULL DEFAULT 1 CHECK (duracion >= 1),
+    -- Al borrar un cliente / traje / taller, se eliminan sus citas en cascada.
+    -- Para el empleado responsable se usa RESTRICT (no se permite eliminar empleados con citas activas).
     CONSTRAINT fk_cita_cliente   FOREIGN KEY (id_cliente)
-        REFERENCES clientes(id_cliente),
+        REFERENCES clientes(id_cliente)  ON DELETE CASCADE  ON UPDATE CASCADE,
     CONSTRAINT fk_cita_traje     FOREIGN KEY (id_traje)
-        REFERENCES trajes(id_traje),
+        REFERENCES trajes(id_traje)      ON DELETE CASCADE  ON UPDATE CASCADE,
     CONSTRAINT fk_cita_empleado  FOREIGN KEY (id_empleado_responsable)
-        REFERENCES empleados(id_empleado),
+        REFERENCES empleados(id_empleado) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_cita_taller    FOREIGN KEY (id_taller)
-        REFERENCES talleres(id_taller)
+        REFERENCES talleres(id_taller)   ON DELETE CASCADE  ON UPDATE CASCADE
 );
 
 CREATE INDEX idx_citas_dia        ON citas(dia);
@@ -101,9 +102,9 @@ CREATE TABLE IF NOT EXISTS cita_aprendices (
     id_aprendiz INT NOT NULL,
     PRIMARY KEY (id_cita, id_aprendiz),
     CONSTRAINT fk_ca_cita      FOREIGN KEY (id_cita)
-        REFERENCES citas(id_cita) ON DELETE CASCADE,
+        REFERENCES citas(id_cita) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_ca_aprendiz  FOREIGN KEY (id_aprendiz)
-        REFERENCES empleados(id_empleado)
+        REFERENCES empleados(id_empleado) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- =============================================================
@@ -117,7 +118,8 @@ INSERT INTO empleados (nombre, apellidos, apodo, categoria, password) VALUES
 ('Peter',    'Parker',        'SpiderHilo','Oficial',   SHA2('1234',256)),
 ('Wanda',    'Maximoff',      'ScarletNeedle','Oficial',SHA2('1234',256)),
 ('Luis',     'García',        'AgujaRápida','Aprendiz', SHA2('1234',256)),
-('Sara',     'López',         'HiloPerdido','Aprendiz', SHA2('1234',256));
+('Sara',     'López',         'HiloPerdido','Aprendiz', SHA2('1234',256)),
+('Ana',      'Martínez',      'DedalDeOro','Aprendiz',  SHA2('1234',256));
 
 -- Talleres
 INSERT INTO talleres (nombre_sala, tipo_sala) VALUES
@@ -157,12 +159,8 @@ INSERT INTO citas (id_cliente, id_traje, id_empleado_responsable, id_taller, dia
 (5, 7, 4, 4, '2026-03-22', '12:00:00', 1);
 
 -- Aprendices asignados a citas
-
 INSERT INTO cita_aprendices (id_cita, id_aprendiz) VALUES
 (1, 5),
 (1, 6),
 (2, 5),
 (4, 6);
-
-
-
